@@ -106,7 +106,7 @@ void loop() {
     break;
   }
   if (MedMv.printNew)
-      Serial.println(MedMv.medTotal);
+      Serial.println((13*MedMv.medTotal+250)/100);
   //Serial.println(readButtons());
   //delay(500);
 }
