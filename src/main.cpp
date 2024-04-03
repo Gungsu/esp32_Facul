@@ -106,7 +106,7 @@ void loop() {
     break;
   }
   if (MedMv.printNew)
-      Serial.println((13*MedMv.medTotal+250)/100);
+      Serial.println((13*MedMv.medTotal+250)/100); //O valor mostrado considera com 2 casas decimais
   //Serial.println(readButtons());
   //delay(500);
 }
