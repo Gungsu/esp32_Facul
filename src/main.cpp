@@ -10,6 +10,7 @@ struct medMv {
   int sumTot;
   bool flagMedInit;
   bool printNew;
+
   void calcMed() {
     values[index] = newValue;
     sumTot += newValue;
@@ -22,10 +23,11 @@ struct medMv {
         index++;
       }
       medTotal = sumTot/50;
-      if (medTotalOLD != medTotal) {
-        int64_t res = abs(medTotalOLD - medTotal);
-        printNew = (res>30)?true:false;
-        if(printNew) medTotalOLD = medTotal;
+      if (abs(medTotalOLD-medTotal) > 10) {
+        medTotalOLD = medTotal;
+        printNew = true;
+      } else {
+        printNew = false;
       }
     } else {
       if (index>=49) {
@@ -48,6 +50,7 @@ void IRAM_ATTR onTimer();
 
 medMv MedMv;
 hw_timer_t *My_timer = NULL;
+bool bloqueioMotor;
 
 void setup()
 {
@@ -58,13 +61,12 @@ void setup()
   timerAttachInterrupt(My_timer, &onTimer, true);
   timerAlarmWrite(My_timer, 10000, true); //microseconds
   timerAlarmEnable(My_timer); // Just Enable
-
+  
   pinMode(MOTOR_SOB, OUTPUT);
   pinMode(MOTOR_DESC, OUTPUT);
   pinMode(BUT_RECRAVAR, INPUT);
   pinMode(LEVER_AUTO, INPUT);
 
-  // Setar __init__ de struct
   MedMv.flagMedInit = false;
 
   Serial.print("\nIniciei...\n");
@@ -82,8 +84,6 @@ int readButtons() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  //Serial.println(analogRead(33));
   switch (readButtons())
   {
   case 0:
@@ -105,15 +105,23 @@ void loop() {
   default:
     break;
   }
-  if (MedMv.printNew)
-      Serial.println((13*MedMv.medTotal+250)/100); //O valor mostrado considera com 2 casas decimais
-  //Serial.println(readButtons());
-  //delay(500);
+
+  if (MedMv.printNew) {
+    int valorEmCorrente = (-3.179*MedMv.medTotal+9800);
+    if (valorEmCorrente>500) {
+      bloqueioMotor = true;
+    } else if (valorEmCorrente<100) {
+      bloqueioMotor = false;
+    }
+    Serial.print(MedMv.medTotal);
+    Serial.print(" ");
+    Serial.println(valorEmCorrente); //O valor mostrado considera com 2 casas decimais
+  };
 }
 
 // put function definitions here:
 void IRAM_ATTR onTimer()
 {
-  MedMv.newValue = map(analogRead(33), 4095, 0, 3300, 280); //1861 //1208
+  MedMv.newValue = map(analogRead(33), 4095, 0, 3300, 280);
   MedMv.calcMed();
 }
